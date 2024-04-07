@@ -1,19 +1,73 @@
-<head>
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+<!DOCTYPE html>
+<html lang="en">
 
-<body>
-    <div class="App">
-        <header class="App-header">
-            <img src="{{ url_for('static', filename='Octocat.png') }}" class="App-logo" alt="logo" />
-            <p>
-                GitHub Codespaces <span class="heart">♥️</span> Flask
-            </p>
-            <p class="small">
-                Edit <code>templates/index.html</code> and refresh to see your changes!
-            </p>
-        </header>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+    <style>
+        h1 {
+            color: white !important;
+        }
+    </style>
+</head>
+
+<body style="background-color: black;">
+    <div style="margin-top: 50px;" class="ui container">
+        <h1 class="ui center aligned header">Expense App</h1>
+        <form class="ui form" id="expense-form" action="/add" method="post">
+            <div class="field">
+                <label style="color: white;">Expense Title</label>
+                <input type="text" name="title" placeholder="Enter expense..."><br>
+            </div>
+            <div class="field">
+                <label style="color: white;">Expense Amount</label>
+                <input type="number" name="amount" placeholder="Enter amount..."><br>
+            </div>
+            <button class="ui orange button" type="submit">Add</button>
+        </form>
+        <hr>
+        {% for expense in expense_list %}
+        <div class="ui segment">
+            <p class="ui big header">{{expense.id}} | {{expense.title}} | ₹{{expense.amount}}</p>
+            <a class="ui red button delete-btn" data-id="{{expense.id}}" href="#">Delete</a>
+        </div>
+        {% endfor %}
+        <div id="plot-container"></div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const expenseId = this.getAttribute('data-id');
+                    fetch(`/delete/${expenseId}`, {
+                        method: 'GET'
+                    }).then(response => {
+                        if (response.ok) {
+                            updatePlot();
+                        }
+                    }).catch(error => console.error('Error deleting expense:', error));
+                });
+            });
+
+            function updatePlot() {
+                fetch('/plot', {
+                    method: 'GET'
+                }).then(response => {
+                    if (response.ok) {
+                        response.text().then(plotHtml => {
+                            document.getElementById('plot-container').innerHTML = plotHtml;
+                        });
+                    }
+                }).catch(error => console.error('Error updating plot:', error));
+            }
+        });
+    </script>
 </body>
 
 </html>
