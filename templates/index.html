@@ -1,73 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expense App</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
-    <style>
-        h1 {
-            color: white !important;
-        }
-    </style>
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
-<body style="background-color: black;">
-    <div style="margin-top: 50px;" class="ui container">
-        <h1 class="ui center aligned header">Expense App</h1>
-        <form class="ui form" id="expense-form" action="/add" method="post">
-            <div class="field">
-                <label style="color: white;">Expense Title</label>
-                <input type="text" name="title" placeholder="Enter expense..."><br>
-            </div>
-            <div class="field">
-                <label style="color: white;">Expense Amount</label>
-                <input type="number" name="amount" placeholder="Enter amount..."><br>
-            </div>
-            <button class="ui orange button" type="submit">Add</button>
-        </form>
-        <hr>
-        {% for expense in expense_list %}
-        <div class="ui segment">
-            <p class="ui big header">{{expense.id}} | {{expense.title}} | ₹{{expense.amount}}</p>
-            <a class="ui red button delete-btn" data-id="{{expense.id}}" href="#">Delete</a>
-        </div>
-        {% endfor %}
-        <div id="plot-container"></div>
+<body>
+    <div class="container">
+        <h1>Expense Tracker</h1>
+        {% if budget %}
+            <h2>Total Budget: ₹{{ budget }}</h2>
+        {% endif %}
+        {% if over_budget %}
+            <p class="warning">Warning: Total expenses exceed budget.</p>
+        {% endif %}
+        <h2>Total Expenses: ₹{{ total }}</h2>
+        <ul>
+            {% for expense in expenses %}
+                <li>{{ expense.description }} - ₹{{ expense.amount }} - Date: {{ expense.date }}</li> <!-- Include date -->
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('add_expense') }}" class="btn">Add Expense</a>
+        <a href="{{ url_for('set_budget') }}" class="btn">Set Budget</a>
+        <a href="{{ url_for('plot') }}" class="btn">Plot Expenses</a> <!-- Button for plotting -->
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const deleteButtons = document.querySelectorAll('.delete-btn');
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    const expenseId = this.getAttribute('data-id');
-                    fetch(`/delete/${expenseId}`, {
-                        method: 'GET'
-                    }).then(response => {
-                        if (response.ok) {
-                            updatePlot();
-                        }
-                    }).catch(error => console.error('Error deleting expense:', error));
-                });
-            });
-
-            function updatePlot() {
-                fetch('/plot', {
-                    method: 'GET'
-                }).then(response => {
-                    if (response.ok) {
-                        response.text().then(plotHtml => {
-                            document.getElementById('plot-container').innerHTML = plotHtml;
-                        });
-                    }
-                }).catch(error => console.error('Error updating plot:', error));
-            }
-        });
-    </script>
 </body>
-
 </html>
